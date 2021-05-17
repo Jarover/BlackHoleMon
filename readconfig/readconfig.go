@@ -16,7 +16,8 @@ import (
 // Config - структура для считывания конфигурационного файла
 type Config struct {
 	//Db_url       string `yaml:"db_url" json:"db_url"`
-	Port uint `yaml:"port" json:"port" `
+	Port uint   `yaml:"port" json:"port" `
+	Host string `yaml:"host" json:"host"`
 	//Jaeger_url   string `yaml:"jaeger_url" json:"jaeger_url"`
 	//Sentry_url   string `yaml:"sentry_url" json:"sentry_url"`
 	//Kafka_broker string `yaml:"kafka_broker" json:"kafka_broker"`
@@ -84,8 +85,13 @@ func (e *Config) CheckUrl(path string) error {
 }
 
 func GetDefaultConfigFile() string {
+
+	return GetBaseFile() + ".json"
+}
+
+func GetBaseFile() string {
 	filename := os.Args[0] // get command line first parameter
-	return strings.Split(filepath.Base(filename), ".")[0] + ".json"
+	return strings.Split(filepath.Base(filename), ".")[0]
 }
 
 func ReadConfig(ConfigName string) (x *Config, err error) {

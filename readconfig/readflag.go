@@ -8,6 +8,7 @@ import (
 type Flag struct {
 	ConfigFile   string
 	Port         uint
+	Host         string
 	Db_url       string
 	Kafka_broker string
 }
