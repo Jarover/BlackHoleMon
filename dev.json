@@ -1,4 +1,5 @@
 {
     "port": 8080,
+    "port2": 9080,
     "host": "localhost"
 }
