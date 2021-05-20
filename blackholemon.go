@@ -9,7 +9,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/unrolled/secure"
+
 	"github.com/Jarover/BlackHoleMon/readconfig"
+	"github.com/Jarover/BlackHoleMon/version"
 	"github.com/gin-gonic/gin"
 )
 
@@ -71,6 +74,8 @@ func setupRouter2() *gin.Engine {
 	}))
 	r.Use(gin.Recovery())
 
+	r.Use(TlsHandler())
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
@@ -87,6 +92,23 @@ func setupRouter2() *gin.Engine {
 	return r
 }
 
+func TlsHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		secureMiddleware := secure.New(secure.Options{
+			SSLRedirect: true,
+			SSLHost:     "localhost:8080",
+		})
+		err := secureMiddleware.Process(c.Writer, c.Request)
+
+		// If there was an error, do not continue.
+		if err != nil {
+			return
+		}
+
+		c.Next()
+	}
+}
+
 // Читаем флаги и окружение
 func readFlag(configFlag *readconfig.Flag) {
 	flag.StringVar(&configFlag.ConfigFile, "f", readconfig.GetEnv("CONFIGFILE", readconfig.GetDefaultConfigFile()), "config file")
@@ -98,6 +120,12 @@ func readFlag(configFlag *readconfig.Flag) {
 }
 
 func main() {
+
+	fmt.Printf(
+		"Starting the service...\ncommit: %s, build time: %s, release: %s",
+		version.Commit, version.BuildTime, version.Release,
+	)
+
 	var configFlag readconfig.Flag
 	readFlag(&configFlag)
 
@@ -125,9 +153,9 @@ func main() {
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 
 	r := setupRouter()
-	go r.Run(Config.Host + ":" + strconv.FormatUint(uint64(Config.Port), 10))
+	r.Run(Config.Host + ":" + strconv.FormatUint(uint64(Config.Port), 10))
 
-	r2 := setupRouter2()
-	r2.Run(Config.Host + ":" + strconv.FormatUint(uint64(Config.Port2), 10))
+	//r2 := setupRouter2()
+	//r2.RunTLS(Config.Host+":443", "", "")
 
 }
